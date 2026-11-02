@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
-const refreshLirrSession = require("./get-cookie"); // Import the function we just exported
+const refreshLirrSession = require("./get-cookie"); // Import your login script
 require("dotenv").config();
 
 const app = express();
@@ -15,9 +15,9 @@ app.use(express.json());
 app.get("/api/scratch-sheet", async (req, res) => {
   try {
     const { date, craftGroup } = req.query;
+    // Always load the latest PHP_SESSION_ID from process.env
     const phpSessionId = process.env.PHP_SESSION_ID;
 
-    // Make the request to the internal LIRR service using the fresh session cookie
     const lirrResponse = await axios.get(
       `https://crew.lirr.org/services/daily-board-awards/get-daily-board-awards-details.php`,
       {
@@ -34,7 +34,6 @@ app.get("/api/scratch-sheet", async (req, res) => {
       },
     );
 
-    // Send the JSON data back to your client
     res.json(lirrResponse.data);
   } catch (error) {
     console.error("Error fetching LIRR data:", error.message);
@@ -42,7 +41,7 @@ app.get("/api/scratch-sheet", async (req, res) => {
   }
 });
 
-// 1. Refresh the cookie on startup, THEN 2. Start the Express server
+// 1. Run the Puppeteer login script on startup, THEN 2. Start the Express server
 refreshLirrSession().then(() => {
   app.listen(PORT, () => {
     console.log(`LIRR Backend proxy running on http://localhost:${PORT}`);

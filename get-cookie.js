@@ -8,7 +8,6 @@ async function refreshLirrSession() {
 
   const browser = await puppeteer.launch({
     headless: false,
-    slowMo: 100,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
   const page = await browser.newPage();
@@ -44,7 +43,7 @@ async function refreshLirrSession() {
 
     if (phpSessionCookie) {
       const sessionId = phpSessionCookie.value;
-      console.log(`Success! Got PHPSESSID: ${sessionId}`);
+      console.log(`Success, we've got a cookie!`);
 
       // 5. Update local .env file
       process.env.PHP_SESSION_ID = sessionId;
