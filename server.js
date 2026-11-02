@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
+const refreshLirrSession = require("./get-cookie"); // Import the function we just exported
 require("dotenv").config();
 
 const app = express();
@@ -16,7 +17,7 @@ app.get("/api/scratch-sheet", async (req, res) => {
     const { date, craftGroup } = req.query;
     const phpSessionId = process.env.PHP_SESSION_ID;
 
-    // Make the request to the internal LIRR service
+    // Make the request to the internal LIRR service using the fresh session cookie
     const lirrResponse = await axios.get(
       `https://crew.lirr.org/services/daily-board-awards/get-daily-board-awards-details.php`,
       {
@@ -41,6 +42,9 @@ app.get("/api/scratch-sheet", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`LIRR Backend proxy running on http://localhost:${PORT}`);
+// 1. Refresh the cookie on startup, THEN 2. Start the Express server
+refreshLirrSession().then(() => {
+  app.listen(PORT, () => {
+    console.log(`LIRR Backend proxy running on http://localhost:${PORT}`);
+  });
 });
