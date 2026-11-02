@@ -1,8 +1,13 @@
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
-const refreshLirrSession = require("./get-cookie"); // Import your login script
 require("dotenv").config();
+
+// Conditionally require get-cookie so it doesn't load Puppeteer during tests
+let refreshLirrSession;
+if (process.env.NODE_ENV !== "test") {
+  refreshLirrSession = require("./get-cookie");
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -41,9 +46,14 @@ app.get("/api/scratch-sheet", async (req, res) => {
   }
 });
 
-// 1. Run the Puppeteer login script on startup, THEN 2. Start the Express server
-refreshLirrSession().then(() => {
-  app.listen(PORT, () => {
-    console.log(`LIRR Backend proxy running on http://localhost:${PORT}`);
+// Only listen if this file is run directly (node server.js)
+if (require.main === module) {
+  refreshLirrSession().then(() => {
+    app.listen(PORT, () => {
+      console.log(`LIRR Backend proxy running on http://localhost:${PORT}`);
+    });
   });
-});
+}
+
+// Export app for Jest/Supertest
+module.exports = app;
